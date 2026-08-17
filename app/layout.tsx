@@ -21,18 +21,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Txema Albero — Software Engineer & Tech Lead",
+  title: "Sahaya Sandra — Software Engineer & Tech Lead",
   description: "Immersive portfolio of Txema Albero — Software Engineer and Tech Lead. Interactive 3D experiences built with Next.js and React Three Fiber.",
   authors: [{ name: "Txema Albero" }],
   openGraph: {
-    title: "Txema Albero — Software Engineer & Tech Lead",
+    title: "Sahaya Sandra — Software Engineer & Tech Lead",
     description: "Immersive portfolio with an interactive 3D scene built with Next.js, React Three Fiber, and GLSL.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Txema Albero — Software Engineer & Tech Lead",
+    title: "Sahaya Sandra — Software Engineer & Tech Lead",
     description: "Immersive portfolio with an interactive 3D scene built with Next.js, React Three Fiber, and GLSL.",
   },
 };

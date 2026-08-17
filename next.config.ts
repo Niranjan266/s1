@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 // Security headers applied to every response. Tuned for a public portfolio:
 //   - HSTS forces HTTPS on future visits (the reverse proxy / Traefik handles
@@ -26,7 +30,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  turbopack: { root: process.cwd() },
+  // Anchor module resolution to this repository instead of the shell's
+  // working directory. This also supports launching Next from a parent folder.
+  turbopack: { root: projectRoot },
   async headers() {
     return [
       {
