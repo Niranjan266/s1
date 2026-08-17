@@ -1,5 +1,6 @@
 "use client";
 
+import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Localised, PortfolioConfig, PortfolioExperience, PortfolioProject, SmtpConfig } from "@/lib/portfolio-config";
 
@@ -52,12 +53,18 @@ function UploadField({ label, value, accept, onUploaded }: { label: string; valu
   const upload = async (file?: File) => {
     if (!file) return;
     setUploading(true);
-    const form = new FormData(); form.append("file", file);
-    const response = await fetch("/api/admin/upload", { method: "POST", body: form });
-    const result = await response.json() as { url?: string; error?: string };
-    setUploading(false);
-    if (!response.ok || !result.url) return window.alert(result.error || "Upload failed.");
-    onUploaded(result.url);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const blob = await uploadToBlob(`portfolio/uploads/${crypto.randomUUID()}-${safeName}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/upload",
+      });
+      onUploaded(blob.url);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
   };
   return <div className="admin-upload"><Field label={label} value={value} onChange={onUploaded} placeholder="URL or upload a file" /><label className="admin-upload__button">{uploading ? "Uploading…" : "Upload"}<input type="file" accept={accept} disabled={uploading} onChange={(e) => void upload(e.target.files?.[0])} /></label></div>;
 }

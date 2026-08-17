@@ -1,27 +1,40 @@
-import { randomUUID } from "node:crypto";
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { isAdmin, isSameOrigin } from "@/lib/admin-auth";
 import { hasBlobStorage } from "@/lib/portfolio-storage";
 
-const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/x-icon", "image/vnd.microsoft.icon", "image/svg+xml", "application/pdf"]);
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/x-icon", "image/vnd.microsoft.icon", "image/svg+xml", "application/pdf"];
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 
 export async function POST(request: Request) {
-  if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  if (!isSameOrigin(request)) return NextResponse.json({ error: "Invalid origin." }, { status: 403 });
   if (!hasBlobStorage()) return NextResponse.json({ error: "Connect a Vercel Blob store first." }, { status: 503 });
-  const form = await request.formData();
-  const file = form.get("file");
-  if (!(file instanceof File)) return NextResponse.json({ error: "Choose a file." }, { status: 400 });
-  if (!ALLOWED_TYPES.has(file.type) || file.size > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: "Use an image or PDF up to 10 MB." }, { status: 400 });
+  const body = (await request.json().catch(() => null)) as HandleUploadBody | null;
+  if (!body) return NextResponse.json({ error: "Invalid upload request." }, { status: 400 });
+
+  // Vercel Blob calls this endpoint after an upload completes. Authentication
+  // is required when issuing a browser upload token; the SDK validates the
+  // signed completion callback itself.
+  if (body.type === "blob.generate-client-token") {
+    if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    if (!isSameOrigin(request)) return NextResponse.json({ error: "Invalid origin." }, { status: 403 });
   }
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const blob = await put(`portfolio/uploads/${randomUUID()}-${safeName}`, file, {
-    access: "public",
-    addRandomSuffix: false,
-    contentType: file.type,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
-  return NextResponse.json({ url: blob.url });
+
+  try {
+    const result = await handleUpload({
+      request,
+      body,
+      onBeforeGenerateToken: async (pathname) => {
+        if (!pathname.startsWith("portfolio/uploads/")) throw new Error("Invalid upload path.");
+        return {
+          allowedContentTypes: ALLOWED_TYPES,
+          maximumSizeInBytes: MAX_UPLOAD_SIZE,
+          addRandomSuffix: false,
+        };
+      },
+      onUploadCompleted: async () => {},
+    });
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Upload failed." }, { status: 400 });
+  }
 }

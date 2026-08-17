@@ -12,7 +12,7 @@ const CONFIG_PATH = "portfolio/config.json";
 
 const blobToken = () => process.env.BLOB_READ_WRITE_TOKEN;
 
-export const hasBlobStorage = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+export const hasBlobStorage = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
 const encryptionKey = () => {
   const value = process.env.ADMIN_DATA_SECRET || process.env.ADMIN_SESSION_SECRET;

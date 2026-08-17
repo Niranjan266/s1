@@ -20,6 +20,15 @@ import { useLanguage } from "@/components/LanguageProvider";
 import * as THREE from "three";
 import { SKILLS_GRID, type SkillIcon } from "@/lib/skills";
 
+function stableNoise(seed: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+}
+
 // Per-section keyboard "states" — same idea as Naresh's animated-background-
 // config.ts, but for our R3F keyboard. Values are tweened toward via lerp
 // inside useFrame; the active section is detected via IntersectionObserver
@@ -431,11 +440,11 @@ function Keycap({
   // Sampled once at mount.
   const randomBob = useMemo(
     () => ({
-      freq: 0.6 + Math.random() * 0.6, // 0.6..1.2 Hz-ish
-      phase: Math.random() * Math.PI * 2,
-      threshold: 0.45 + Math.random() * 0.2, // 0.45..0.65 — higher = rarer pop
+      freq: 0.6 + stableNoise(`${icon.slug}:freq`) * 0.6, // 0.6..1.2 Hz-ish
+      phase: stableNoise(`${icon.slug}:phase`) * Math.PI * 2,
+      threshold: 0.45 + stableNoise(`${icon.slug}:threshold`) * 0.2, // 0.45..0.65 — higher = rarer pop
     }),
-    []
+    [icon.slug]
   );
 
   const iconTexture = useMemo(

@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  createElement,
-  useEffect,
-  useRef,
-  type CSSProperties,
-  type ElementType,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 type Direction = "up" | "down" | "left" | "right" | "none";
 
 type RevealProps = {
   children: ReactNode;
-  as?: ElementType;
+  as?: "div" | "article";
   delay?: number;
   duration?: number;
   distance?: number;
@@ -39,6 +32,9 @@ export default function Reveal({
   once = true,
 }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
+  const setRef = useCallback((element: HTMLElement | null) => {
+    ref.current = element;
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
@@ -80,13 +76,12 @@ export default function Reveal({
     ["--reveal-from" as string]: axis[direction],
   };
 
-  return createElement(
-    Tag,
-    {
-      ref,
-      className: `reveal ${className}`.trim(),
-      style,
-    },
-    children
-  );
+  const props = {
+    ref: setRef,
+    className: `reveal ${className}`.trim(),
+    style,
+  };
+
+  if (Tag === "article") return <article {...props}>{children}</article>;
+  return <div {...props}>{children}</div>;
 }

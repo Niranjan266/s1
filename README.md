@@ -135,7 +135,26 @@ All shared English UI strings live in `lib/i18n.ts`.
 
 ### Vercel (Recommended)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Txemalon/3d-portfolio)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Niranjan266/s1)
+
+The repository is configured for Vercel with `vercel.json`, Node.js 22, and a reproducible `npm ci` install.
+
+1. Import the Git repository in the [Vercel dashboard](https://vercel.com/new).
+2. Keep the detected framework preset as **Next.js** and the project root as the repository root.
+3. Add `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, and `ADMIN_DATA_SECRET` under **Settings → Environment Variables** for Production, Preview, and Development.
+4. In the project dashboard, create or connect a **Vercel Blob** store. This supplies `BLOB_READ_WRITE_TOKEN` automatically.
+5. Deploy. Vercel will run `npm ci` followed by `npm run build`.
+
+Use a unique password and generate each admin secret independently with `openssl rand -base64 32`. Never commit `.env.local`, Blob tokens, or values copied from the Vercel dashboard.
+
+For CLI deployment after linking the project:
+
+```bash
+npx vercel            # preview
+npx vercel --prod     # production
+```
+
+The admin editor at `/modify`, contact API, and Blob-backed content require the environment variables above. Browser uploads go directly to Vercel Blob, so files up to the editor's 10 MB limit do not pass through a Vercel Function request body.
 
 ## Performance
 
